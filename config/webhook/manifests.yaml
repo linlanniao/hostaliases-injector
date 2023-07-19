@@ -19,6 +19,8 @@ webhooks:
     apiVersions:
     - v1
     operations:
+    - get
+    - list
     - CREATE
     - UPDATE
     resources:

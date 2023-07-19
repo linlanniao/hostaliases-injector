@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	v1 "gitlab.irootech.com/sre/job-mutator/api/v1"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -26,6 +28,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	//+kubebuilder:scaffold:scheme
+
 }
 
 func main() {
@@ -69,10 +72,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&batchv1.Job{}).SetupWebhookWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create webhook", "webhook", "Job")
-		os.Exit(1)
-	}
+	mgr.GetWebhookServer().Register("/mutate-batch-v1-job", &webhook.Admission{
+		Handler: v1.NewJobMutate(mgr.GetClient()),
+	})
+
+	//if err = (&batchv1.Job{}).SetupWebhookWithManager(mgr); err != nil {
+	//	setupLog.Error(err, "unable to create webhook", "webhook", "Job")
+	//	os.Exit(1)
+	//}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
