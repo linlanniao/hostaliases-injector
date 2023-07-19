@@ -42,9 +42,13 @@ func NewJobMutate(client client.Client) admission.Handler {
 func (v *JobMutate) Handle(ctx context.Context, req admission.Request) admission.Response {
 	// TODO
 	job := &batchv1.Job{}
-	joblog.Info(fmt.Sprintf("%+v", req))
+	joblog.Info(fmt.Sprintf("%#v", v))
+	joblog.Info(fmt.Sprintf("%#v", v.decoder))
+	joblog.Info(fmt.Sprintf("%#v", req))
+	//joblog.Info(fmt.Sprintf("%#v", v.decoder.Decode(req, nil)))
 
-	if err := v.decoder.Decode(req, job); err != nil {
+	err := v.decoder.Decode(req, job)
+	if err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 	job.Labels["testaaaaa"] = "testbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -58,8 +62,34 @@ func (v *JobMutate) Handle(ctx context.Context, req admission.Request) admission
 	return admission.PatchResponseFromRaw(req.Object.Raw, resp)
 }
 
-// InjectDecoder injects the decoder.
 func (v *JobMutate) InjectDecoder(d *admission.Decoder) error {
 	v.decoder = d
 	return nil
 }
+
+//
+//type podAnnotator struct {
+//	Client  client.Client
+//	decoder *admission.Decoder
+//}
+//
+//func (a *podAnnotator) Handle(ctx context.Context, req admission.Request) admission.Response {
+//	pod := &corev1.Pod{}
+//	err := a.decoder.Decode(req, pod)
+//	if err != nil {
+//		return admission.Errored(http.StatusBadRequest, err)
+//	}
+//
+//	// mutate the fields in pod
+//
+//	marshaledPod, err := json.Marshal(pod)
+//	if err != nil {
+//		return admission.Errored(http.StatusInternalServerError, err)
+//	}
+//	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledPod)
+//}
+//
+//func (a *podAnnotator) InjectDecoder(d *admission.Decoder) error {
+//	a.decoder = d
+//	return nil
+//}
