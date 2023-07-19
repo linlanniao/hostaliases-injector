@@ -7,4 +7,12 @@ layout:
 - go.kubebuilder.io/v4
 projectName: job-mutator
 repo: gitlab.irootech.com/sre/job-mutator
+resources:
+- group: batch
+  kind: Job
+  path: k8s.io/api/batch/v1
+  version: v1
+  webhooks:
+    defaulting: true
+    webhookVersion: v1
 version: "3"
