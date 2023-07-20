@@ -115,8 +115,13 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		logger.Info("comparing failed,delete older Job", oldJob.Namespace, oldJob.Name)
 		err := jm.DeleteJob(ctx, oldJob)
 		if err != nil {
+			logger.Error(err, "failed to delete")
+		}
+		resp, err := json.Marshal(oldJob)
+		if err != nil {
 			return admission.Errored(http.StatusInternalServerError, err)
 		}
+		return admission.PatchResponseFromRaw(req.Object.Raw, resp)
 	}
 
 	logger.Info("comparing passed, replace job.spec")
