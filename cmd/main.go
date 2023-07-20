@@ -5,7 +5,6 @@ import (
 	v1 "gitlab.irootech.com/sre/job-mutator/api/v1"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
-
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"

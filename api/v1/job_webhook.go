@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/json"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -36,7 +37,11 @@ type JobMutate struct {
 var _ admission.Handler = &JobMutate{}
 
 func NewJobMutate(client client.Client) admission.Handler {
-	return &JobMutate{Client: client}
+	decoder := admission.NewDecoder(runtime.NewScheme())
+	return &JobMutate{
+		Client:  client,
+		decoder: decoder,
+	}
 }
 
 func (v *JobMutate) Handle(ctx context.Context, req admission.Request) admission.Response {
@@ -62,34 +67,7 @@ func (v *JobMutate) Handle(ctx context.Context, req admission.Request) admission
 	return admission.PatchResponseFromRaw(req.Object.Raw, resp)
 }
 
-func (v *JobMutate) InjectDecoder(d *admission.Decoder) error {
-	v.decoder = d
-	return nil
-}
-
-//
-//type podAnnotator struct {
-//	Client  client.Client
-//	decoder *admission.Decoder
-//}
-//
-//func (a *podAnnotator) Handle(ctx context.Context, req admission.Request) admission.Response {
-//	pod := &corev1.Pod{}
-//	err := a.decoder.Decode(req, pod)
-//	if err != nil {
-//		return admission.Errored(http.StatusBadRequest, err)
-//	}
-//
-//	// mutate the fields in pod
-//
-//	marshaledPod, err := json.Marshal(pod)
-//	if err != nil {
-//		return admission.Errored(http.StatusInternalServerError, err)
-//	}
-//	return admission.PatchResponseFromRaw(req.Object.Raw, marshaledPod)
-//}
-//
-//func (a *podAnnotator) InjectDecoder(d *admission.Decoder) error {
-//	a.decoder = d
+//func (v *JobMutate) InjectDecoder(d *admission.Decoder) error {
+//	v.decoder = d
 //	return nil
 //}
