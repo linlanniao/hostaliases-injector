@@ -87,6 +87,10 @@ func (jm *JobMutate) GetJob(ctx context.Context, name, namespace string) (*batch
 	return obj, err
 }
 
+func (jm *JobMutate) DeleteJob(ctx context.Context, job *batchV1.Job) error {
+	return jm.Client.Delete(ctx, job)
+}
+
 func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admission.Response {
 	// TODO
 	newJob := new(batchV1.Job)
@@ -107,10 +111,15 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 	}
 
 	isSame := jm.CompareTemplate(newJob.Spec.Template.Spec, oldJob.Spec.Template.Spec, ComparisonTypes)
-	if isSame {
-		return admission.Allowed("job.spec.template.spec is the same, skipping.")
+	if !isSame {
+		logger.Info("comparing failed,delete older Job", oldJob.Namespace, oldJob.Name)
+		err := jm.DeleteJob(ctx, oldJob)
+		if err != nil {
+			return admission.Errored(http.StatusInternalServerError, err)
+		}
 	}
 
+	logger.Info("comparing passed, replace job.spec")
 	newJob.Spec = oldJob.Spec
 	logger.Info("replace new job.spec")
 
