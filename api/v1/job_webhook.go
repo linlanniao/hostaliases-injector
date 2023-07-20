@@ -56,14 +56,17 @@ func (v *JobMutate) Handle(ctx context.Context, req admission.Request) admission
 	if err != nil {
 		return admission.Errored(http.StatusBadRequest, err)
 	}
-	//job.Labels["testaaaaa"] = "testbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	job.Labels["testaaaaa"] = "testbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 
 	resp, err := json.Marshal(job)
 	if err != nil {
 		return admission.Errored(http.StatusInternalServerError, err)
 	}
 
-	joblog.Info("labeled", job.GetLabels())
+	for k, v := range job.GetLabels() {
+		joblog.Info("labeled", k, v)
+	}
+	//joblog.Info("labeled", job.GetLabels())
 	return admission.PatchResponseFromRaw(req.Object.Raw, resp)
 }
 
