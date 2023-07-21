@@ -5,9 +5,11 @@ import (
 	"errors"
 	batchV1 "k8s.io/api/batch/v1"
 	coreV1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/json"
+	utilpointer "k8s.io/utils/pointer"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -87,8 +89,30 @@ func (jm *JobMutate) GetJob(ctx context.Context, name, namespace string) (*batch
 	return obj, err
 }
 
-func (jm *JobMutate) DeleteJob(ctx context.Context, job *batchV1.Job) error {
-	return jm.Client.Delete(ctx, job)
+func (jm *JobMutate) DeleteJob(ctx context.Context, name, namespace string) error {
+
+	if namespace == "" {
+		namespace = coreV1.NamespaceDefault
+	}
+	if name == "" {
+		return errors.New("resource name is required")
+	}
+	obj := &batchV1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+		},
+	}
+
+	policy := metav1.DeletePropagationForeground
+	deleteOpts := &client.DeleteOptions{
+		GracePeriodSeconds: utilpointer.Int64(0),
+		Preconditions:      nil,
+		PropagationPolicy:  &policy,
+		Raw:                nil,
+		DryRun:             nil,
+	}
+	return jm.Client.Delete(ctx, obj, deleteOpts)
 }
 
 func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admission.Response {
@@ -112,8 +136,8 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 
 	isSame := jm.CompareTemplate(newJob.Spec.Template.Spec, oldJob.Spec.Template.Spec, ComparisonTypes)
 	if !isSame {
-		logger.Info("comparing failed,delete older Job", oldJob.Namespace, oldJob.Name)
-		err := jm.DeleteJob(ctx, oldJob)
+		logger.Info("comparing failed, delete older Job", oldJob.Namespace, oldJob.Name)
+		err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace)
 		if err != nil {
 			logger.Error(err, "failed to delete")
 		}

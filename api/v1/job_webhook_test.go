@@ -2,37 +2,23 @@ package v1
 
 import (
 	"context"
-	"flag"
+	"fmt"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
-	"path/filepath"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"testing"
 )
 
 func newClient() client.Client {
-	var kubeconfig *string
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
-	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-	}
-	flag.Parse()
-
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	cfg, err := config.GetConfig()
+	c, err := client.New(cfg, client.Options{})
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
-
-	c, err := client.New(config, client.Options{})
-	if err != nil {
-		panic(err)
-	}
-
 	return c
-
 }
 
 func TestGetJob(t *testing.T) {
@@ -42,10 +28,28 @@ func TestGetJob(t *testing.T) {
 		Client:  c,
 		decoder: admission.NewDecoder(runtime.NewScheme()),
 	}
-	job, err := jm.GetJob(context.TODO(), "a", "")
+	job, err := jm.GetJob(context.TODO(), "devops-xxl-job-patch-job-latest", "")
 	if err != nil {
 		t.Log(err.Error())
 	}
 	t.Log(job.String())
+}
 
+func TestDeleteJob(t *testing.T) {
+	c := newClient()
+
+	jm := JobMutate{
+		Client:  c,
+		decoder: admission.NewDecoder(runtime.NewScheme()),
+	}
+	job, err := jm.GetJob(context.TODO(), "devops-xxl-job-patch-job-latest", "")
+	if err != nil {
+		t.Log(err.Error())
+	}
+	t.Log(job.String())
+	t.Log("--------------------------------")
+	err2 := jm.DeleteJob(context.TODO(), job.Name, job.Namespace)
+	if err2 != nil {
+		t.Log(err.Error())
+	}
 }
