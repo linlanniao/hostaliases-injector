@@ -105,7 +105,7 @@ func (jm *JobMutate) DeleteJob(ctx context.Context, name, namespace string) erro
 		},
 	}
 
-	policy := metav1.DeletePropagationForeground
+	policy := metav1.DeletePropagationBackground
 	deleteOpts := &client.DeleteOptions{
 		GracePeriodSeconds: utilpointer.Int64(0),
 		Preconditions:      nil,
@@ -142,7 +142,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		if err != nil {
 			logger.Error(err, "failed to delete")
 		}
-		time.Sleep(time.Millisecond * 1000)
+		time.Sleep(time.Millisecond * 2000)
 		resp, err := json.Marshal(oldJob)
 		if err != nil {
 			return admission.Errored(http.StatusInternalServerError, err)
