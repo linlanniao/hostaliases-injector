@@ -15,6 +15,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"strings"
+	"time"
 )
 
 //+kubebuilder:webhook:path=/mutate-batch-coreV1-job,mutating=true,failurePolicy=ignore,sideEffects=None,groups=batch,resources=jobs,verbs=create;update,versions=coreV1,name=mjob.kb.io,admissionReviewVersions=coreV1
@@ -137,10 +138,11 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 	isSame := jm.CompareTemplate(newJob.Spec.Template.Spec, oldJob.Spec.Template.Spec, ComparisonTypes)
 	if !isSame {
 		logger.Info("comparing failed, delete older Job", oldJob.Namespace, oldJob.Name)
-		//err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace)
-		//if err != nil {
-		//	logger.Error(err, "failed to delete")
-		//}
+		err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace)
+		if err != nil {
+			logger.Error(err, "failed to delete")
+		}
+		time.Sleep(time.Millisecond * 1000)
 		resp, err := json.Marshal(oldJob)
 		if err != nil {
 			return admission.Errored(http.StatusInternalServerError, err)
