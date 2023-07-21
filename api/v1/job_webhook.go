@@ -137,10 +137,10 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 	isSame := jm.CompareTemplate(newJob.Spec.Template.Spec, oldJob.Spec.Template.Spec, ComparisonTypes)
 	if !isSame {
 		logger.Info("comparing failed, delete older Job", oldJob.Namespace, oldJob.Name)
-		err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace)
-		if err != nil {
-			logger.Error(err, "failed to delete")
-		}
+		//err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace)
+		//if err != nil {
+		//	logger.Error(err, "failed to delete")
+		//}
 		resp, err := json.Marshal(oldJob)
 		if err != nil {
 			return admission.Errored(http.StatusInternalServerError, err)
