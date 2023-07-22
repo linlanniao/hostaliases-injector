@@ -15,7 +15,6 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"strings"
-	"time"
 )
 
 //+kubebuilder:webhook:path=/mutate-batch-coreV1-job,mutating=true,failurePolicy=ignore,sideEffects=None,groups=batch,resources=jobs,verbs=create;update,versions=coreV1,name=mjob.kb.io,admissionReviewVersions=coreV1
@@ -91,6 +90,17 @@ func (jm *JobMutate) GetJob(ctx context.Context, name, namespace string) (*batch
 }
 
 func (jm *JobMutate) CreateJob(ctx context.Context, job *batchV1.Job) error {
+	job.Status = batchV1.JobStatus{}
+	if job.Annotations != nil {
+		delete(job.Annotations, "kubectl.kubernetes.io/last-applied-configuration")
+	}
+	job.UID = ""
+	job.ResourceVersion = ""
+	job.Spec.Selector = nil
+	if job.Spec.Template.Labels != nil {
+		delete(job.Spec.Template.Labels, "controller-uid")
+	}
+
 	return jm.Client.Create(ctx, job)
 }
 
@@ -145,7 +155,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		if err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace); err != nil {
 			logger.Error(err, "failed to delete job")
 		}
-		time.Sleep(time.Millisecond * 1500)
+		//time.Sleep(time.Millisecond * 1500)
 		if err := jm.CreateJob(ctx, newJob); err != nil {
 			logger.Error(err, "failed to create job")
 		}

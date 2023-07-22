@@ -9,7 +9,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"testing"
-	"time"
 )
 
 func newJm() JobMutate {
@@ -54,12 +53,13 @@ func TestReplaceJob(t *testing.T) {
 	if err != nil {
 		t.Log(err.Error())
 	}
+	t.Log(job.String())
 	t.Log("--------------------------------")
 	err2 := jm.DeleteJob(context.TODO(), job.Name, job.Namespace)
 	if err2 != nil {
 		t.Log(err2.Error())
 	}
-	time.Sleep(time.Millisecond * 1000)
+	//time.Sleep(time.Millisecond * 1500)
 	err3 := jm.CreateJob(context.TODO(), job)
 	if err3 != nil {
 		t.Log(err3.Error())
