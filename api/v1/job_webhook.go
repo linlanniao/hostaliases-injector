@@ -160,7 +160,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		if err := jm.CreateJob(ctx, newJob); err != nil {
 			logger.Error(err, "failed to create job")
 		}
-		resp, err := json.Marshal(newJob)
+		_, err := json.Marshal(newJob)
 		if err != nil {
 			return admission.Errored(http.StatusInternalServerError, err)
 		}
