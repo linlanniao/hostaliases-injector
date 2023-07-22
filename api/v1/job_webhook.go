@@ -90,6 +90,10 @@ func (jm *JobMutate) GetJob(ctx context.Context, name, namespace string) (*batch
 	return obj, err
 }
 
+func (jm *JobMutate) CreateJob(ctx context.Context, job *batchV1.Job) error {
+	return jm.Client.Create(ctx, job)
+}
+
 func (jm *JobMutate) DeleteJob(ctx context.Context, name, namespace string) error {
 
 	if namespace == "" {
@@ -137,13 +141,15 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 
 	isSame := jm.CompareTemplate(newJob.Spec.Template.Spec, oldJob.Spec.Template.Spec, ComparisonTypes)
 	if !isSame {
-		logger.Info("comparing failed, delete older Job", oldJob.Namespace, oldJob.Name)
-		err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace)
-		if err != nil {
-			logger.Error(err, "failed to delete")
+		logger.Info("comparing failed, force replace the job", oldJob.Namespace, oldJob.Name)
+		if err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace); err != nil {
+			logger.Error(err, "failed to delete job")
 		}
-		time.Sleep(time.Millisecond * 2000)
-		resp, err := json.Marshal(oldJob)
+		time.Sleep(time.Millisecond * 1500)
+		if err := jm.CreateJob(ctx, newJob); err != nil {
+			logger.Error(err, "failed to create job")
+		}
+		resp, err := json.Marshal(newJob)
 		if err != nil {
 			return admission.Errored(http.StatusInternalServerError, err)
 		}

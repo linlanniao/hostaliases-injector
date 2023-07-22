@@ -9,25 +9,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"testing"
+	"time"
 )
 
-func newClient() client.Client {
+func newJm() JobMutate {
 	cfg, err := config.GetConfig()
 	c, err := client.New(cfg, client.Options{})
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	return c
-}
-
-func TestGetJob(t *testing.T) {
-	c := newClient()
-
-	jm := JobMutate{
+	return JobMutate{
 		Client:  c,
 		decoder: admission.NewDecoder(runtime.NewScheme()),
 	}
+}
+
+func TestGetJob(t *testing.T) {
+	jm := newJm()
 	job, err := jm.GetJob(context.TODO(), "devops-xxl-job-patch-job-latest", "")
 	if err != nil {
 		t.Log(err.Error())
@@ -36,12 +35,7 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestDeleteJob(t *testing.T) {
-	c := newClient()
-
-	jm := JobMutate{
-		Client:  c,
-		decoder: admission.NewDecoder(runtime.NewScheme()),
-	}
+	jm := newJm()
 	job, err := jm.GetJob(context.TODO(), "devops-xxl-job-patch-job-latest", "")
 	if err != nil {
 		t.Log(err.Error())
@@ -51,5 +45,23 @@ func TestDeleteJob(t *testing.T) {
 	err2 := jm.DeleteJob(context.TODO(), job.Name, job.Namespace)
 	if err2 != nil {
 		t.Log(err.Error())
+	}
+}
+
+func TestReplaceJob(t *testing.T) {
+	jm := newJm()
+	job, err := jm.GetJob(context.TODO(), "devops-xxl-job-patch-job-latest", "")
+	if err != nil {
+		t.Log(err.Error())
+	}
+	t.Log("--------------------------------")
+	err2 := jm.DeleteJob(context.TODO(), job.Name, job.Namespace)
+	if err2 != nil {
+		t.Log(err2.Error())
+	}
+	time.Sleep(time.Millisecond * 1000)
+	err3 := jm.CreateJob(context.TODO(), job)
+	if err3 != nil {
+		t.Log(err3.Error())
 	}
 }
