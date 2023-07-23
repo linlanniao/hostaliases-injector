@@ -165,7 +165,8 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 			return admission.Errored(http.StatusInternalServerError, err)
 		}
 
-		return admission.Allowed("replaced")
+		//return admission.Allowed("replaced")
+		return admission.Denied("replaced")
 		//admission.PatchResponseFromRaw(req.Object.Raw, resp)
 	}
 
