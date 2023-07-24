@@ -168,7 +168,7 @@ func (jm *JobMutate) DeleteJob(ctx context.Context, name, namespace string) erro
 	case err := <-done:
 		return err
 	case <-time.After(time.Millisecond * 8000):
-		return errors.New("function timed out")
+		return errors.New("timed out")
 	}
 }
 
@@ -195,7 +195,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		if err != nil {
 			return admission.Errored(http.StatusInternalServerError, err)
 		}
-		logger.Info("processed.")
+		//logger.Info("processed.")
 		return admission.PatchResponseFromRaw(req.Object.Raw, resp)
 	}
 
