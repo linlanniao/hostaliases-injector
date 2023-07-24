@@ -380,7 +380,7 @@ webhooks:
     service:
       name: job-mutator-webhook-service
       namespace: job-mutator-system
-      path: /mutate-batch-coreV1-job
+      path: /mutate-batch-v1-job
   failurePolicy: Ignore
   name: mjob.kb.io
   rules:
@@ -390,6 +390,7 @@ webhooks:
     - v1
     operations:
     - UPDATE
+    - CREATE
     resources:
     - jobs
   sideEffects: None
