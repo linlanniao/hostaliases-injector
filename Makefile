@@ -2,6 +2,7 @@
 # Image URL to use all building/pushing image targets
 #IMG ?= controller:latest
 IMG ?= registry.rootcloud.com/devops/job-mutator:0.0.1
+RBAC_PROXY_IMG ?= registry.rootcloud.com/devops/kube-rbac-proxy:v0.14.1
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.27.1
 
@@ -102,9 +103,23 @@ PLATFORMS ?= linux/arm64,linux/amd64
 docker-buildx: test ## Build and push docker image for the manager for cross-platform support
 	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
 	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
+	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile-kube-rbac-proxy > Dockerfile-kube-rbac-proxy.cross
 	- $(CONTAINER_TOOL) buildx create --name project-v3-builder
 	$(CONTAINER_TOOL) buildx use project-v3-builder
 	- $(CONTAINER_TOOL) buildx build --provenance=false --sbom=false --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross .
+	- $(CONTAINER_TOOL) buildx build --provenance=false --sbom=false --push --platform=$(PLATFORMS) --tag ${RBAC_PROXY_IMG} -f Dockerfile-kube-rbac-proxy.cross .
+	- $(CONTAINER_TOOL) buildx rm project-v3-builder
+	rm Dockerfile.cross
+
+
+PLATFORMS ?= linux/arm64,linux/amd64
+.PHONY: docker-buildx-kube-rbac-proxy
+docker-buildx-kube-rbac-proxy: test ## Build and push docker image for the manager for cross-platform support
+	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
+	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile-kube-rbac-proxy > Dockerfile.cross
+	- $(CONTAINER_TOOL) buildx create --name project-v3-builder
+	$(CONTAINER_TOOL) buildx use project-v3-builder
+	- $(CONTAINER_TOOL) buildx build --provenance=false --sbom=false --push --platform=$(PLATFORMS) --tag ${RBAC_PROXY_IMG} -f Dockerfile.cross .
 	- $(CONTAINER_TOOL) buildx rm project-v3-builder
 	rm Dockerfile.cross
 
