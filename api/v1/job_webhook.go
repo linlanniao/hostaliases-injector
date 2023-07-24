@@ -15,7 +15,6 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"strings"
-	"time"
 )
 
 //+kubebuilder:webhook:path=/mutate-batch-coreV1-job,mutating=true,failurePolicy=ignore,sideEffects=None,groups=batch,resources=jobs,verbs=create;update,versions=coreV1,name=mjob.kb.io,admissionReviewVersions=coreV1
@@ -150,24 +149,24 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		return admission.Allowed("noting to compare, skipping.")
 	}
 
-	isSame := jm.CompareTemplate(newJob.Spec.Template.Spec, oldJob.Spec.Template.Spec, ComparisonTypes)
+	isSame := jm.CompareJob(newJob, oldJob)
 	if !isSame {
 		logger.Info("comparing failed, force replace the job", oldJob.Namespace, oldJob.Name)
-		if err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace); err != nil {
-			logger.Error(err, "failed to delete job")
-		}
-		time.Sleep(time.Millisecond * 1500)
-		if err := jm.CreateJob(ctx, newJob); err != nil {
-			logger.Error(err, "failed to create job")
-		}
-		_, err := json.Marshal(newJob)
+		//if err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace); err != nil {
+		//	logger.Error(err, "failed to delete job")
+		//}
+		//time.Sleep(time.Millisecond * 1500)
+		//if err := jm.CreateJob(ctx, newJob); err != nil {
+		//	logger.Error(err, "failed to create job")
+		//}
+		resp, err := json.Marshal(newJob)
 		if err != nil {
 			return admission.Errored(http.StatusInternalServerError, err)
 		}
 
 		//return admission.Allowed("replaced")
-		return admission.Denied("replaced")
-		//admission.PatchResponseFromRaw(req.Object.Raw, resp)
+		//return admission.Denied("replaced")
+		admission.PatchResponseFromRaw(req.Object.Raw, resp)
 	}
 
 	logger.Info("comparing passed, replace job.spec")
@@ -180,6 +179,12 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 	}
 
 	return admission.PatchResponseFromRaw(req.Object.Raw, resp)
+}
+
+func (jm *JobMutate) CompareJob(left, right *batchV1.Job) (isSame bool) {
+	ComparisonTypes := jm.parseAnnotation(left)
+	isSame = jm.CompareTemplate(left.Spec.Template.Spec, right.Spec.Template.Spec, ComparisonTypes)
+	return isSame
 }
 
 func (_ *JobMutate) CompareContainerImage(left, right coreV1.Container) (isSame bool) {
@@ -243,19 +248,19 @@ func (jm *JobMutate) CompareTemplate(left, right coreV1.PodSpec, comparisonConte
 		rightContainer := right.Containers[i]
 
 		if _, ok := m[TypeComparisonImage]; ok {
-			if jm.CompareContainerImage(leftContainer, rightContainer) {
+			if !jm.CompareContainerImage(leftContainer, rightContainer) {
 				return false
 			}
 		}
 
 		if _, ok := m[TypeComparisonEnv]; ok {
-			if jm.CompareContainerEnv(leftContainer, rightContainer) {
+			if !jm.CompareContainerEnv(leftContainer, rightContainer) {
 				return false
 			}
 		}
 
 		if _, ok := m[TypeComparisonEnvFrom]; ok {
-			if jm.CompareContainerEnvFrom(leftContainer, rightContainer) {
+			if !jm.CompareContainerEnvFrom(leftContainer, rightContainer) {
 				return false
 			}
 		}
