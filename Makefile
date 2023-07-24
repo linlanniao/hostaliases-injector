@@ -121,7 +121,7 @@ docker-buildx-kube-rbac-proxy: test ## Build and push docker image for the manag
 	$(CONTAINER_TOOL) buildx use project-v3-builder
 	- $(CONTAINER_TOOL) buildx build --provenance=false --sbom=false --push --platform=$(PLATFORMS) --tag ${RBAC_PROXY_IMG} -f Dockerfile.cross .
 	- $(CONTAINER_TOOL) buildx rm project-v3-builder
-	rm Dockerfile.cross
+	rm Dockerfile.cross Dockerfile-kube-rbac-proxy.cross
 
 ##@ Deployment
 
