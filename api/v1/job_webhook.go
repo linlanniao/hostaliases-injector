@@ -147,10 +147,10 @@ func (jm *JobMutate) DeleteJob(ctx context.Context, name, namespace string) erro
 
 	go func() {
 		for {
+			time.Sleep(time.Millisecond * 500)
 			if _, err := jm.GetJob(ctx, name, namespace); err != nil {
 				done <- struct{}{}
 			}
-			time.Sleep(time.Millisecond * 500)
 		}
 	}()
 
