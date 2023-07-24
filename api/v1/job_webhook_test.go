@@ -160,6 +160,11 @@ spec:
         - |
           echo default
           sleep 10
+        env:
+        - name: k1
+          value: v1
+        - name: k2
+          value: v2
         image: dockerhub.tencentcloudcr.com/library/nginx:alpine
         #image: dockerhub.tencentcloudcr.com/library/nginx:stable
         imagePullPolicy: Always

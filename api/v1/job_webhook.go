@@ -15,9 +15,10 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"strings"
+	"time"
 )
 
-//+kubebuilder:webhook:path=/mutate-batch-coreV1-job,mutating=true,failurePolicy=ignore,sideEffects=None,groups=batch,resources=jobs,verbs=create;update,versions=coreV1,name=mjob.kb.io,admissionReviewVersions=coreV1
+//+kubebuilder:webhook:path=/mutate-batch-coreV1-job,mutating=true,failurePolicy=ignore,sideEffects=None,groups=batch,resources=jobs,verbs=update,versions=v1,name=mjob.kb.io,admissionReviewVersions=v1
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 
 // log is for logging in this package.
@@ -37,7 +38,8 @@ func NewJobMutate(client client.Client) admission.Handler {
 }
 
 const (
-	AnnotationKey = "job-mutator.sre.rootcloud.info/comparison-content"
+	AnnotationComparisonKey = "job-mutator.sre.rootcloud.info/comparison-content"
+	AnnotationProcessingKey = "job-mutator.sre.rootcloud.info/processing"
 )
 
 type ComparisonType string
@@ -51,11 +53,11 @@ var (
 func (_ *JobMutate) parseAnnotation(job *batchV1.Job) []ComparisonType {
 	comparisonTypes := make([]ComparisonType, 0)
 
-	if job.Annotations == nil {
+	if len(job.Annotations) == 0 {
 		return comparisonTypes
 	}
 
-	keys, ok := job.Annotations[AnnotationKey]
+	keys, ok := job.Annotations[AnnotationComparisonKey]
 	if !ok {
 		return comparisonTypes
 	}
@@ -74,6 +76,17 @@ func (_ *JobMutate) parseAnnotation(job *batchV1.Job) []ComparisonType {
 	}
 
 	return comparisonTypes
+}
+
+func (_ *JobMutate) isProcessing(job *batchV1.Job) bool {
+	if len(job.Annotations) == 0 {
+		return false
+	}
+	_, ok := job.Annotations[AnnotationProcessingKey]
+	if ok {
+		return true
+	}
+	return false
 }
 
 func (jm *JobMutate) GetJob(ctx context.Context, name, namespace string) (*batchV1.Job, error) {
@@ -138,35 +151,47 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 
+	if len(newJob.Annotations) == 0 {
+		return admission.Allowed("newJob annotations is empty, skipping.")
+	}
+
 	oldJob, err := jm.GetJob(ctx, newJob.Name, newJob.Namespace)
 	if err != nil {
 		return admission.Allowed("oldJob not found, skipping.")
+	}
+
+	if jm.isProcessing(newJob) {
+		delete(newJob.Annotations, AnnotationProcessingKey)
+		resp, err := json.Marshal(newJob)
+		if err != nil {
+			return admission.Errored(http.StatusInternalServerError, err)
+		}
+		logger.Info("processed.")
+		return admission.PatchResponseFromRaw(req.Object.Raw, resp)
 	}
 
 	ComparisonTypes := jm.parseAnnotation(newJob)
 
 	if len(ComparisonTypes) == 0 {
 		return admission.Allowed("noting to compare, skipping.")
+
 	}
 
 	isSame := jm.CompareJob(newJob, oldJob)
 	if !isSame {
 		logger.Info("comparing failed, force replace the job", oldJob.Namespace, oldJob.Name)
-		//if err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace); err != nil {
-		//	logger.Error(err, "failed to delete job")
-		//}
-		//time.Sleep(time.Millisecond * 1500)
-		//if err := jm.CreateJob(ctx, newJob); err != nil {
-		//	logger.Error(err, "failed to create job")
-		//}
+		if err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace); err != nil {
+			logger.Error(err, "failed to delete job")
+		}
+		time.Sleep(time.Millisecond * 1500)
+		if err := jm.CreateJob(ctx, newJob); err != nil {
+			logger.Error(err, "failed to create job")
+		}
 		resp, err := json.Marshal(newJob)
 		if err != nil {
 			return admission.Errored(http.StatusInternalServerError, err)
 		}
-
-		//return admission.Allowed("replaced")
-		//return admission.Denied("replaced")
-		admission.PatchResponseFromRaw(req.Object.Raw, resp)
+		return admission.PatchResponseFromRaw(req.Object.Raw, resp)
 	}
 
 	logger.Info("comparing passed, replace job.spec")

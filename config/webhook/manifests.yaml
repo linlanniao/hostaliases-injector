@@ -10,7 +10,7 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /mutate-batch-v1-job
+      path: /mutate-batch-coreV1-job
   failurePolicy: Ignore
   name: mjob.kb.io
   rules:
@@ -19,7 +19,6 @@ webhooks:
     apiVersions:
     - v1
     operations:
-    - CREATE
     - UPDATE
     resources:
     - jobs
