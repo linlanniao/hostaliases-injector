@@ -390,7 +390,6 @@ webhooks:
     - v1
     operations:
     - UPDATE
-    - CREATE
     resources:
     - jobs
   sideEffects: None

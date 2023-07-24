@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-//+kubebuilder:webhook:path=/mutate-batch-v1-job,mutating=true,failurePolicy=ignore,sideEffects=None,groups=batch,resources=jobs,verbs=update;create,versions=v1,name=mjob.kb.io,admissionReviewVersions=v1
+//+kubebuilder:webhook:path=/mutate-batch-v1-job,mutating=true,failurePolicy=ignore,sideEffects=None,groups=batch,resources=jobs,verbs=update,versions=v1,name=mjob.kb.io,admissionReviewVersions=v1
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 
 // log is for logging in this package.
