@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"errors"
+	"fmt"
 	batchV1 "k8s.io/api/batch/v1"
 	coreV1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -186,7 +187,8 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 
 	oldJob, err := jm.GetJob(ctx, newJob.Name, newJob.Namespace)
 	if err != nil {
-		return admission.Allowed("oldJob not found, skipping.")
+		return admission.Allowed(
+			fmt.Sprintf(`oldJob not found, process:skip, meta: {"%s": "%s"}`, oldJob.Namespace, oldJob.Name))
 	}
 
 	if jm.isProcessing(newJob) {
@@ -202,7 +204,8 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 	ComparisonTypes := jm.parseAnnotation(newJob)
 
 	if len(ComparisonTypes) == 0 {
-		return admission.Allowed("noting to compare, skipping.")
+		return admission.Allowed(
+			fmt.Sprintf(`noting to compare, process:skip, meta: {"%s": "%s"}`, oldJob.Namespace, oldJob.Name))
 
 	}
 
@@ -210,7 +213,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 	if !isSame {
 
 		if err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace); err != nil {
-			logger.Error(err, "failed to delete job")
+			logger.Error(err, "failed to delete job, meta:", oldJob.Namespace, oldJob.Name)
 		}
 		//time.Sleep(time.Millisecond * 1000)
 
@@ -221,10 +224,10 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		newJob.Annotations[AnnotationProcessingKey] = now.UTC().Format("2006-01-02T15:04:05Z")
 
 		if err := jm.CreateJob(ctx, newJob); err != nil {
-			logger.Error(err, "failed to create job")
+			logger.Error(err, "failed to create job, meta:", oldJob.Namespace, oldJob.Name)
 		}
 
-		logger.Info("comparing failed, force replace the job", oldJob.Namespace, oldJob.Name)
+		logger.Info("comparison failure, process:force_replace, meta:", oldJob.Namespace, oldJob.Name)
 
 		resp, err := json.Marshal(newJob)
 		if err != nil {
@@ -234,7 +237,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 	}
 
 	newJob.Spec = oldJob.Spec
-	logger.Info("comparing passed, replace job.spec")
+	logger.Info("comparison successful, process:replace:job.spec, meta:", oldJob.Namespace, oldJob.Name)
 	//logger.Info("replace new job.spec")
 
 	resp, err := json.Marshal(newJob)
