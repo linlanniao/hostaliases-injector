@@ -167,6 +167,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 			return admission.Errored(http.StatusInternalServerError, err)
 		}
 		logger.Info("processed.")
+		time.Sleep(time.Millisecond * 1000)
 		return admission.PatchResponseFromRaw(req.Object.Raw, resp)
 	}
 
@@ -183,7 +184,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		if err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace); err != nil {
 			logger.Error(err, "failed to delete job")
 		}
-		time.Sleep(time.Millisecond * 1500)
+		time.Sleep(time.Millisecond * 1000)
 
 		if len(newJob.Annotations) == 0 {
 			newJob.Annotations = make(map[string]string)

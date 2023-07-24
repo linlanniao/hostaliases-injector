@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../default
+
+patches:
+  - patch: |
+      - op: "add"
+        path: "/webhooks/0/clientConfig/url"
+        value: "https://host.docker.internal:9443/mutate-batch-v1-job"
+    target:
+      kind: MutatingWebhookConfiguration
+  - patch: |
+      - op: "add"
+        path: "/webhooks/0/clientConfig/url"
+        value: "https://host.docker.internal:9443/mutate-batch-v1-job"
+    target:
+      kind: ValidatingWebhookConfiguration
+  - path: webhook_patch.yaml
+    target:
+      group: admissionregistration.k8s.io
