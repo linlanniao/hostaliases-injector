@@ -132,7 +132,8 @@ func (jm *JobMutate) DeleteJob(ctx context.Context, name, namespace string) erro
 		},
 	}
 
-	policy := metav1.DeletePropagationBackground
+	//policy := metav1.DeletePropagationBackground
+	policy := metav1.DeletePropagationForeground
 	deleteOpts := &client.DeleteOptions{
 		GracePeriodSeconds: utilpointer.Int64(0),
 		Preconditions:      nil,
@@ -140,7 +141,25 @@ func (jm *JobMutate) DeleteJob(ctx context.Context, name, namespace string) erro
 		Raw:                nil,
 		DryRun:             nil,
 	}
-	return jm.Client.Delete(ctx, obj, deleteOpts)
+	err := jm.Client.Delete(ctx, obj, deleteOpts)
+
+	done := make(chan struct{})
+
+	go func() {
+		for {
+			if _, err := jm.GetJob(ctx, name, namespace); err != nil {
+				done <- struct{}{}
+			}
+			time.Sleep(time.Millisecond * 500)
+		}
+	}()
+
+	select {
+	case <-done:
+		return err
+	case <-time.After(time.Millisecond * 5000):
+		return errors.New("function timed out")
+	}
 }
 
 func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admission.Response {
@@ -167,7 +186,6 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 			return admission.Errored(http.StatusInternalServerError, err)
 		}
 		logger.Info("processed.")
-		time.Sleep(time.Millisecond * 1000)
 		return admission.PatchResponseFromRaw(req.Object.Raw, resp)
 	}
 
