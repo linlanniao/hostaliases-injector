@@ -9,6 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/json"
+	"k8s.io/client-go/util/retry"
 	utilpointer "k8s.io/utils/pointer"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -114,7 +115,12 @@ func (jm *JobMutate) CreateJob(ctx context.Context, job *batchV1.Job) error {
 		delete(job.Spec.Template.Labels, "controller-uid")
 	}
 
-	return jm.Client.Create(ctx, job)
+	//return jm.Client.Create(ctx, job)
+	return retry.OnError(retry.DefaultRetry, func(err error) bool {
+		return true
+	}, func() error {
+		return jm.Client.Create(ctx, job)
+	})
 }
 
 func (jm *JobMutate) DeleteJob(ctx context.Context, name, namespace string) error {
@@ -132,8 +138,8 @@ func (jm *JobMutate) DeleteJob(ctx context.Context, name, namespace string) erro
 		},
 	}
 
-	//policy := metav1.DeletePropagationBackground
-	policy := metav1.DeletePropagationForeground
+	policy := metav1.DeletePropagationBackground
+	//policy := metav1.DeletePropagationForeground
 	deleteOpts := &client.DeleteOptions{
 		GracePeriodSeconds: utilpointer.Int64(0),
 		Preconditions:      nil,
@@ -141,23 +147,27 @@ func (jm *JobMutate) DeleteJob(ctx context.Context, name, namespace string) erro
 		Raw:                nil,
 		DryRun:             nil,
 	}
-	err := jm.Client.Delete(ctx, obj, deleteOpts)
 
-	done := make(chan struct{})
+	done := make(chan error)
 
 	go func() {
 		for {
+			err1 := retry.OnError(retry.DefaultRetry, func(err error) bool {
+				return true
+			}, func() error {
+				return jm.Client.Delete(ctx, obj, deleteOpts)
+			})
 			time.Sleep(time.Millisecond * 500)
-			if _, err := jm.GetJob(ctx, name, namespace); err != nil {
-				done <- struct{}{}
+			if _, err2 := jm.GetJob(ctx, name, namespace); err2 != nil {
+				done <- err1
 			}
 		}
 	}()
 
 	select {
-	case <-done:
+	case err := <-done:
 		return err
-	case <-time.After(time.Millisecond * 5000):
+	case <-time.After(time.Millisecond * 8000):
 		return errors.New("function timed out")
 	}
 }
@@ -202,7 +212,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		if err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace); err != nil {
 			logger.Error(err, "failed to delete job")
 		}
-		time.Sleep(time.Millisecond * 1000)
+		//time.Sleep(time.Millisecond * 1000)
 
 		if len(newJob.Annotations) == 0 {
 			newJob.Annotations = make(map[string]string)
