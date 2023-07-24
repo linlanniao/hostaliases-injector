@@ -208,7 +208,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 
 	isSame := jm.CompareJob(newJob, oldJob)
 	if !isSame {
-		logger.Info("comparing failed, force replace the job", oldJob.Namespace, oldJob.Name)
+
 		if err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace); err != nil {
 			logger.Error(err, "failed to delete job")
 		}
@@ -223,6 +223,9 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		if err := jm.CreateJob(ctx, newJob); err != nil {
 			logger.Error(err, "failed to create job")
 		}
+
+		logger.Info("comparing failed, force replace the job", oldJob.Namespace, oldJob.Name)
+
 		resp, err := json.Marshal(newJob)
 		if err != nil {
 			return admission.Errored(http.StatusInternalServerError, err)
@@ -230,9 +233,9 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		return admission.PatchResponseFromRaw(req.Object.Raw, resp)
 	}
 
-	logger.Info("comparing passed, replace job.spec")
 	newJob.Spec = oldJob.Spec
-	logger.Info("replace new job.spec")
+	logger.Info("comparing passed, replace job.spec")
+	//logger.Info("replace new job.spec")
 
 	resp, err := json.Marshal(newJob)
 	if err != nil {
