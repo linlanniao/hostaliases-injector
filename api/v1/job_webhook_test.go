@@ -112,7 +112,7 @@ spec:
         - |
           echo default
           sleep 10
-        image: dockerhub.tencentcloudcr.com/library/nginx:alpine
+        image: dockerhub.tencentcloudcr.com/library/nginx:v1
         imagePullPolicy: Always
         name: test-job
         resources:
@@ -160,13 +160,12 @@ spec:
         - |
           echo default
           sleep 10
-        env:
+        env:  # different value, but not compare
         - name: k1
           value: v1
         - name: k2
-          value: v2
-        image: dockerhub.tencentcloudcr.com/library/nginx:alpine
-        #image: dockerhub.tencentcloudcr.com/library/nginx:stable
+          value: v22222 
+        image: dockerhub.tencentcloudcr.com/library/nginx:v1  # same value
         imagePullPolicy: Always
         name: test-job
         resources:
@@ -183,13 +182,389 @@ spec:
       schedulerName: default-scheduler
       terminationGracePeriodSeconds: 900
 `
-	leftReq := raw2Request(raw1)
-	rightReq := raw2Request(raw2)
+	raw3 := `
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    job-mutator.sre.rootcloud.info/comparison-content: image
+  labels:
+    app.oam.dev/revision: test-job-v3
+  name: test-job-latest
+  namespace: default
+spec:
+  backoffLimit: 6
+  completionMode: NonIndexed
+  completions: 1
+  parallelism: 1
+  suspend: false
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: test-job
+        app.oam.dev/component: test-job
+        job-name: test-job-latest
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          echo default
+          sleep 10
+        env:  # different value, but not compare
+        - name: k2
+          value: v2123412341234234  # difference
+        image: dockerhub.tencentcloudcr.com/library/nginx:v2 #different image
+        imagePullPolicy: Always
+        name: test-job
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 900
+`
 	jm := newJm()
-	lJob := &batchv1.Job{}
-	rJob := &batchv1.Job{}
-	_ = jm.decoder.Decode(leftReq, lJob)
-	_ = jm.decoder.Decode(rightReq, rJob)
-	isSame := jm.CompareJob(lJob, rJob)
-	assert.True(t, isSame)
+	j1 := &batchv1.Job{}
+	j2 := &batchv1.Job{}
+	j3 := &batchv1.Job{}
+	_ = jm.decoder.Decode(raw2Request(raw1), j1)
+	_ = jm.decoder.Decode(raw2Request(raw2), j2)
+	_ = jm.decoder.Decode(raw2Request(raw3), j3)
+	assert.True(t, jm.CompareJob(j1, j2))
+	assert.False(t, jm.CompareJob(j1, j3))
+}
+
+func TestCompareImageAndEnv(t *testing.T) {
+	raw1 := `
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    job-mutator.sre.rootcloud.info/comparison-content: image,env
+  labels:
+    app.oam.dev/revision: test-job-v1
+  name: test-job-latest
+  namespace: default
+spec:
+  backoffLimit: 6
+  completionMode: NonIndexed
+  completions: 1
+  parallelism: 1
+  suspend: false
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: test-job
+        app.oam.dev/component: test-job
+        job-name: test-job-latest
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          echo default
+          sleep 10
+        image: dockerhub.tencentcloudcr.com/library/nginx:v1
+        imagePullPolicy: Always
+        name: test-job
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 900
+`
+	raw2 := `
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    job-mutator.sre.rootcloud.info/comparison-content: image,env
+  labels:
+    app.oam.dev/revision: test-job-v2
+  name: test-job-latest
+  namespace: default
+spec:
+  backoffLimit: 6
+  completionMode: NonIndexed
+  completions: 1
+  parallelism: 1
+  suspend: false
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: test-job
+        app.oam.dev/component: test-job
+        job-name: test-job-latest
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          echo default
+          sleep 10
+        env:  # different value
+        - name: k1
+          value: v1
+        - name: k2
+          value: v22222 
+        image: dockerhub.tencentcloudcr.com/library/nginx:v1  # same value
+        imagePullPolicy: Always
+        name: test-job
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 900
+`
+	raw3 := `
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    job-mutator.sre.rootcloud.info/comparison-content: image,env
+  labels:
+    app.oam.dev/revision: test-job-v3
+  name: test-job-latest
+  namespace: default
+spec:
+  backoffLimit: 6
+  completionMode: NonIndexed
+  completions: 1
+  parallelism: 1
+  suspend: false
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: test-job
+        app.oam.dev/component: test-job
+        job-name: test-job-latest
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          echo default
+          sleep 10
+        env:  # different value
+        - name: k2
+          value: v2123412341234234  # difference
+        image: dockerhub.tencentcloudcr.com/library/nginx:v2 #different image
+        imagePullPolicy: Always
+        name: test-job
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 900
+`
+	jm := newJm()
+	j1 := &batchv1.Job{}
+	j2 := &batchv1.Job{}
+	j3 := &batchv1.Job{}
+	_ = jm.decoder.Decode(raw2Request(raw1), j1)
+	_ = jm.decoder.Decode(raw2Request(raw2), j2)
+	_ = jm.decoder.Decode(raw2Request(raw3), j3)
+	assert.False(t, jm.CompareJob(j1, j2))
+	assert.False(t, jm.CompareJob(j1, j3))
+}
+
+func TestCompareEnv(t *testing.T) {
+	raw1 := `
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    job-mutator.sre.rootcloud.info/comparison-content: env
+  labels:
+    app.oam.dev/revision: test-job-v1
+  name: test-job-latest
+  namespace: default
+spec:
+  backoffLimit: 6
+  completionMode: NonIndexed
+  completions: 1
+  parallelism: 1
+  suspend: false
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: test-job
+        app.oam.dev/component: test-job
+        job-name: test-job-latest
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          echo default
+          sleep 10
+        image: dockerhub.tencentcloudcr.com/library/nginx:v1
+        imagePullPolicy: Always
+        name: test-job
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 900
+`
+	raw2 := `
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    job-mutator.sre.rootcloud.info/comparison-content: env
+  labels:
+    app.oam.dev/revision: test-job-v2
+  name: test-job-latest
+  namespace: default
+spec:
+  backoffLimit: 6
+  completionMode: NonIndexed
+  completions: 1
+  parallelism: 1
+  suspend: false
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: test-job
+        app.oam.dev/component: test-job
+        job-name: test-job-latest
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          echo default
+          sleep 10
+        env:  # different value
+        - name: k1
+          value: v1
+        - name: k2
+          value: v22222 
+        image: dockerhub.tencentcloudcr.com/library/nginx:v1  # same value
+        imagePullPolicy: Always
+        name: test-job
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 900
+`
+	raw3 := `
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    job-mutator.sre.rootcloud.info/comparison-content: image,env
+  labels:
+    app.oam.dev/revision: test-job-v3
+  name: test-job-latest
+  namespace: default
+spec:
+  backoffLimit: 6
+  completionMode: NonIndexed
+  completions: 1
+  parallelism: 1
+  suspend: false
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: test-job
+        app.oam.dev/component: test-job
+        job-name: test-job-latest
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          echo default
+          sleep 10
+        image: dockerhub.tencentcloudcr.com/library/nginx:65535 #different image
+        imagePullPolicy: Always
+        name: test-job
+        resources:
+          limits:
+            cpu: 500m
+            memory: 500Mi
+          requests:
+            cpu: 200m
+            memory: 200Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 900
+`
+	jm := newJm()
+	j1 := &batchv1.Job{}
+	j2 := &batchv1.Job{}
+	j3 := &batchv1.Job{}
+	_ = jm.decoder.Decode(raw2Request(raw1), j1)
+	_ = jm.decoder.Decode(raw2Request(raw2), j2)
+	_ = jm.decoder.Decode(raw2Request(raw3), j3)
+	assert.False(t, jm.CompareJob(j1, j2))
+	assert.True(t, jm.CompareJob(j1, j3))
 }

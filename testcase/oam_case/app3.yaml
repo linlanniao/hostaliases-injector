@@ -37,7 +37,7 @@ spec:
             type: both
           type: annotation-workload
         - properties:
-            project.links.repo: sre/testapp
+            project.links.repo: app3
             job-mutator.sre.rootcloud.info/comparison-content: image
           type: annotations
         - properties:
@@ -48,9 +48,9 @@ spec:
             type: both
           type: label-workload
         - properties:
-            env:
+            env: # different env
               k1: v1
-              k2: v33333333333333333333333333333333  # different values
+              k2: v33333333333333333333333333333333
           type: environment
         - properties:
             limits:
