@@ -115,7 +115,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		}
 		logger.Info(
 			"difference content",
-			"comparisonTypes", newJob.Annotations["AnnotationComparisonKey"],
+			"comparisonTypes", newJob.Annotations[AnnotationComparisonKey],
 			"action", "recreateJob",
 			"namespace", newJob.Namespace,
 			"name", newJob.Name,
@@ -131,7 +131,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 	newJob.Spec = oldJob.Spec
 	logger.Info(
 		"difference content",
-		"comparisonTypes", newJob.Annotations["AnnotationComparisonKey"],
+		"comparisonTypes", newJob.Annotations[AnnotationComparisonKey],
 		"action", "updateMetadataOnly",
 		"namespace", newJob.Namespace,
 		"name", newJob.Name,
