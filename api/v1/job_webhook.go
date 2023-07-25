@@ -52,7 +52,22 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 	}
 
 	if len(newJob.Annotations) == 0 {
-		return admission.Allowed("newJob annotations is empty, skipping.")
+		logger.Info(
+			"annotations is empty",
+			"action", "skip",
+			"namespace", newJob.Namespace,
+			"name", newJob.Name,
+		)
+		return admission.Allowed("")
+	}
+	if _, ok := newJob.Annotations[AnnotationComparisonKey]; !ok {
+		logger.Info(
+			"uncontrolled target",
+			"action", "skip",
+			"namespace", newJob.Namespace,
+			"name", newJob.Name,
+		)
+		return admission.Allowed("")
 	}
 
 	oldJob, err := jm.GetJob(ctx, newJob.Name, newJob.Namespace)
