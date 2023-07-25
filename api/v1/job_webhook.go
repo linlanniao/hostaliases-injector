@@ -130,7 +130,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 
 	newJob.Spec = oldJob.Spec
 	logger.Info(
-		"difference content",
+		"same content",
 		"comparisonTypes", newJob.Annotations[AnnotationComparisonKey],
 		"action", "updateMetadataOnly",
 		"namespace", newJob.Namespace,
