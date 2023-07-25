@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/api/admission/v1"
-	batchV1 "k8s.io/api/batch/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -186,8 +186,8 @@ spec:
 	leftReq := raw2Request(raw1)
 	rightReq := raw2Request(raw2)
 	jm := newJm()
-	lJob := &batchV1.Job{}
-	rJob := &batchV1.Job{}
+	lJob := &batchv1.Job{}
+	rJob := &batchv1.Job{}
 	_ = jm.decoder.Decode(leftReq, lJob)
 	_ = jm.decoder.Decode(rightReq, rJob)
 	isSame := jm.CompareJob(lJob, rJob)

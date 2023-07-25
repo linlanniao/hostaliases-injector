@@ -1,0 +1,63 @@
+apiVersion: core.oam.dev/v1beta1
+kind: Application
+metadata:
+  annotations:
+    rootcloud.io/depends-on: |
+      [{"name": "iam", "namespace": "rootcloud-v4"}, {"name": "data-migration", "namespace": "rootcloud-v4"}]
+  labels:
+    project.module: testapp
+    project.resource-kind: appops
+    project.suite: rootcloud-testapp
+    ware.core-layer: application
+  name: testapp
+  namespace: default
+spec:
+  components:
+    - name: app-test-job
+      properties:
+        addRevisionSuffix: false
+        image:
+          registry: registry.rootcloud.com
+          repository: devops/library/nginx
+          tag: 1.19.1  # same image
+#        suffixType: tag
+        cmd:
+          - /bin/sh
+          - -c
+          - |
+            echo $k1
+            echo $k2
+            sleep 10
+      traits:
+        - properties:
+            annotations:
+              project.module: 根云平台4.0运维开发
+              project.owner: 林嘉健
+              project.summary: ''
+            type: both
+          type: annotation-workload
+        - properties:
+            project.links.repo: sre/testapp
+            job-mutator.sre.rootcloud.info/comparison-content: image
+          type: annotations
+        - properties:
+            labels:
+              project.module: testapp
+              project.suite: rootcloud-testapp
+              ware.core-layer: application
+            type: both
+          type: label-workload
+        - properties:
+            env:
+              k1: v1
+              k2: v22222222222  # different values
+          type: environment
+        - properties:
+            limits:
+              cpu: 500m
+              memory: 250Mi
+            requests:
+              cpu: 100m
+              memory: 50Mi
+          type: resources-assign
+      type: microtask
