@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    sre-mutator.rootcloud.info/job-recreate-reason: image
+    sre-mutator.rootcloud.info/job-recreate-reason: imageChange
   labels:
     app.oam.dev/revision: test-job-v3
   name: test-job-latest

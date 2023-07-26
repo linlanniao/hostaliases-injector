@@ -38,7 +38,7 @@ spec:
           type: annotation-workload
         - properties:
             project.links.repo: app4
-            sre-mutator.rootcloud.info/job-recreate-reason: env
+            sre-mutator.rootcloud.info/job-recreate-reason: envChange
           type: annotations
         - properties:
             labels:
