@@ -29,15 +29,6 @@ COPY api/ api/
 RUN #CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o manager cmd/main.go
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -o manager cmd/main.go
 
-# upx
-RUN set -eux; \
-	apt-get install -y --no-install-recommends \
-		upx \
-	; \
-	rm -rf /var/lib/apt/lists/* \
-
-RUN upx -9 manager
-
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
