@@ -15,12 +15,11 @@ spec:
   components:
     - name: app-test-job
       properties:
-        addRevisionSuffix: true
         image:
           registry: registry.rootcloud.com
           repository: devops/library/nginx
           tag: 1.19.1
-        suffixType: revision
+          reCreateReasons: imageChange
         cmd:
           - /bin/sh
           - -c
@@ -37,7 +36,7 @@ spec:
             type: both
           type: annotation-workload
         - properties:
-            project.links.repo: app5
+            project.links.repo: app8
           type: annotations
         - properties:
             labels:
@@ -47,9 +46,9 @@ spec:
             type: both
           type: label-workload
         - properties:
-            env:
+            env: # different environments
               k1: v1
-              k2: v2
+              k2: app888888888888888888888
           type: environment
         - properties:
             limits:

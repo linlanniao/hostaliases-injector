@@ -20,7 +20,7 @@ spec:
           registry: registry.rootcloud.com
           repository: devops/library/nginx
           tag: 1.19.1
-        suffixType: revision
+        suffixType: tag
         cmd:
           - /bin/sh
           - -c
@@ -37,7 +37,7 @@ spec:
             type: both
           type: annotation-workload
         - properties:
-            project.links.repo: app5
+            project.links.repo: app6
           type: annotations
         - properties:
             labels:
