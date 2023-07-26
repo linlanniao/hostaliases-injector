@@ -4,5 +4,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: controller
-  newName: registry.rootcloud.com/devops/job-mutator
+  newName: registry.rootcloud.com/devops/job-refactor
   newTag: 0.0.1

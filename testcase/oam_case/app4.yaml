@@ -38,7 +38,7 @@ spec:
           type: annotation-workload
         - properties:
             project.links.repo: app4
-            job-mutator.sre.rootcloud.info/comparison-content: env
+            job-refactor.sre.rootcloud.info/comparison-content: env
           type: annotations
         - properties:
             labels:

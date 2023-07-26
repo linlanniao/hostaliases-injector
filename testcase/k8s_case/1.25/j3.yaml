@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    job-mutator.sre.rootcloud.info/comparison-content: image
+    job-refactor.sre.rootcloud.info/comparison-content: image
   labels:
     app.oam.dev/revision: test-job-v3
   name: test-job-latest

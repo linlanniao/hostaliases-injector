@@ -6,8 +6,8 @@ metadata:
     app.kubernetes.io/name: namespace
     app.kubernetes.io/instance: system
     app.kubernetes.io/component: manager
-    app.kubernetes.io/created-by: job-mutator
-    app.kubernetes.io/part-of: job-mutator
+    app.kubernetes.io/created-by: job-refactor
+    app.kubernetes.io/part-of: job-refactor
     app.kubernetes.io/managed-by: kustomize
   name: system
 ---
@@ -21,8 +21,8 @@ metadata:
     app.kubernetes.io/name: deployment
     app.kubernetes.io/instance: controller-manager
     app.kubernetes.io/component: manager
-    app.kubernetes.io/created-by: job-mutator
-    app.kubernetes.io/part-of: job-mutator
+    app.kubernetes.io/created-by: job-refactor
+    app.kubernetes.io/part-of: job-refactor
     app.kubernetes.io/managed-by: kustomize
 spec:
   selector:
@@ -71,7 +71,7 @@ spec:
         args:
         - --leader-elect
 #        image: controller:latest
-        image: registry.rootcloud.com/devops/job-mutator:0.0.1
+        image: registry.rootcloud.com/devops/job-refactor:0.0.1
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
