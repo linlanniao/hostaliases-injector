@@ -19,7 +19,7 @@ spec:
           registry: registry.rootcloud.com
           repository: devops/library/nginx
           tag: 1.21.1  # difference image
-          reCreateReasons: imageChange
+          reCreateIfChanged: image
         cmd:
           - /bin/sh
           - -c

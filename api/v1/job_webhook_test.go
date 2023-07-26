@@ -86,7 +86,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    sre-mutator.rootcloud.info/job-recreate-reason: imageChange
+    sre-mutator.rootcloud.info/job-recreate-if-changed: image
   labels:
     app.oam.dev/revision: test-job-v1
   name: test-job-latest
@@ -134,7 +134,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    sre-mutator.rootcloud.info/job-recreate-reason: imageChange
+    sre-mutator.rootcloud.info/job-recreate-if-changed: image
   labels:
     app.oam.dev/revision: test-job-v2
   name: test-job-latest
@@ -187,7 +187,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    sre-mutator.rootcloud.info/job-recreate-reason: imageChange
+    sre-mutator.rootcloud.info/job-recreate-if-changed: image
   labels:
     app.oam.dev/revision: test-job-v3
   name: test-job-latest
@@ -250,7 +250,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    sre-mutator.rootcloud.info/job-recreate-reason: imageChange,envChange
+    sre-mutator.rootcloud.info/job-recreate-if-changed: image,env
   labels:
     app.oam.dev/revision: test-job-v1
   name: test-job-latest
@@ -298,7 +298,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    sre-mutator.rootcloud.info/job-recreate-reason: imageChange,envChange
+    sre-mutator.rootcloud.info/job-recreate-if-changed: image,env
   labels:
     app.oam.dev/revision: test-job-v2
   name: test-job-latest
@@ -351,7 +351,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    sre-mutator.rootcloud.info/job-recreate-reason: imageChange,envChange
+    sre-mutator.rootcloud.info/job-recreate-if-changed: image,env
   labels:
     app.oam.dev/revision: test-job-v3
   name: test-job-latest
@@ -414,7 +414,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    sre-mutator.rootcloud.info/job-recreate-reason: envChange
+    sre-mutator.rootcloud.info/job-recreate-if-changed: env
   labels:
     app.oam.dev/revision: test-job-v1
   name: test-job-latest
@@ -462,7 +462,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    sre-mutator.rootcloud.info/job-recreate-reason: envChange
+    sre-mutator.rootcloud.info/job-recreate-if-changed: env
   labels:
     app.oam.dev/revision: test-job-v2
   name: test-job-latest
@@ -515,7 +515,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    sre-mutator.rootcloud.info/job-recreate-reason: imageChange,envChange
+    sre-mutator.rootcloud.info/job-recreate-if-changed: image,env
   labels:
     app.oam.dev/revision: test-job-v3
   name: test-job-latest
