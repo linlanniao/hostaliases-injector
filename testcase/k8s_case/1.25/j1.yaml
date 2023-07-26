@@ -4,7 +4,7 @@ metadata:
   annotations:
     job-mutator.sre.rootcloud.info/comparison-content: image
   labels:
-    app.oam.dev/revision: test-job-v2
+    app.oam.dev/revision: test-job-v1
   name: test-job-latest
   namespace: default
 spec:
@@ -28,14 +28,9 @@ spec:
         - |
           echo default
           sleep 10
-        env:
-        - name: k1
-          value: v1 
-        - name: k2
-          value: v2
         #image: dockerhub.tencentcloudcr.com/library/nginx:alpine
         image: nginx:alpine
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: test-job
         resources:
           limits:
