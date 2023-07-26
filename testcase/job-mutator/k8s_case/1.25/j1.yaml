@@ -2,15 +2,17 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations:
-    job-refactor.sre.rootcloud.info/comparison-content: image
+    sre-mutator.sre.rootcloud.info/job-comparison-content: image
   labels:
-    app.oam.dev/revision: test-job-v3
+    app.oam.dev/revision: test-job-v1
   name: test-job-latest
   namespace: default
 spec:
   backoffLimit: 6
+  completionMode: NonIndexed
   completions: 1
   parallelism: 1
+  suspend: false
   template:
     metadata:
       creationTimestamp: null
@@ -21,24 +23,13 @@ spec:
     spec:
       containers:
       - command:
-          - /bin/sh
-          - -c
-          - |
-            echo $k2
-            sleep 10
-        env:
-          - name: k1
-            value: v2
-          - name: k2
-            value: v22222222
-        envFrom:
-          - configMapRef:
-              name: jwt-token-patch-env
-              optional: true
-          - configMapRef:
-              name: common-desensitize-env
-              optional: true
-        image: nginx:stable
+        - /bin/sh
+        - -c
+        - |
+          echo default
+          sleep 10
+        #image: dockerhub.tencentcloudcr.com/library/nginx:alpine
+        image: nginx:alpine
         imagePullPolicy: IfNotPresent
         name: test-job
         resources:

@@ -1,4 +1,4 @@
-module gitlab.irootech.com/sre/job-refactor
+module gitlab.irootech.com/sre/sre-mutator
 
 go 1.20
 

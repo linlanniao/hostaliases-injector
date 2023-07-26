@@ -16,7 +16,7 @@ import (
 //+kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 
 // log is for logging in this package.
-var logger = logf.Log.WithName("job-refactor")
+var logger = logf.Log.WithName("sre-mutator")
 
 type JobMutate struct {
 	Client  client.Client
@@ -32,8 +32,8 @@ func NewJobMutate(client client.Client) admission.Handler {
 }
 
 const (
-	AnnotationComparisonKey = "job-refactor.sre.rootcloud.info/comparison-content"
-	AnnotationProcessingKey = "job-refactor.sre.rootcloud.info/processing"
+	AnnotationComparisonKey = "sre-mutator.sre.rootcloud.info/job-comparison-content"
+	AnnotationProcessingKey = "sre-mutator.sre.rootcloud.info/job-processing"
 )
 
 type ComparisonType string

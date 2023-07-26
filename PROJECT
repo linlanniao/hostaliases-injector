@@ -5,8 +5,8 @@
 domain: sre.rootcloud.info
 layout:
 - go.kubebuilder.io/v4
-projectName: job-refactor
-repo: gitlab.irootech.com/sre/job-refactor
+projectName: sre-mutator
+repo: gitlab.irootech.com/sre/sre-mutator
 resources:
 - group: batch
   kind: Job

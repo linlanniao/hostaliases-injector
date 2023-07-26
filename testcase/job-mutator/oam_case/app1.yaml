@@ -19,7 +19,7 @@ spec:
         image:
           registry: registry.rootcloud.com
           repository: devops/library/nginx
-          tag: 1.21.1  # difference image
+          tag: 1.19.1
 #        suffixType: tag
         cmd:
           - /bin/sh
@@ -37,8 +37,8 @@ spec:
             type: both
           type: annotation-workload
         - properties:
-            project.links.repo: app4
-            job-refactor.sre.rootcloud.info/comparison-content: env
+            project.links.repo: app1
+            sre-mutator.sre.rootcloud.info/job-comparison-content: image
           type: annotations
         - properties:
             labels:
@@ -48,7 +48,7 @@ spec:
             type: both
           type: label-workload
         - properties:
-            env: # same env
+            env:
               k1: v1
               k2: v2
           type: environment

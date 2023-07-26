@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	v1 "gitlab.irootech.com/sre/job-refactor/api/v1"
+	v1 "gitlab.irootech.com/sre/sre-mutator/api/v1"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
