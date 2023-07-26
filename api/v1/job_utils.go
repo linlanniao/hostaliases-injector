@@ -14,8 +14,8 @@ import (
 	"time"
 )
 
-func (_ *JobMutate) parseAnnotation(job *batchv1.Job) []ComparisonType {
-	comparisonTypes := make([]ComparisonType, 0)
+func (_ *JobMutate) parseAnnotation(job *batchv1.Job) []ReCreateReason {
+	comparisonTypes := make([]ReCreateReason, 0)
 
 	if len(job.Annotations) == 0 {
 		return comparisonTypes
@@ -26,14 +26,14 @@ func (_ *JobMutate) parseAnnotation(job *batchv1.Job) []ComparisonType {
 		return comparisonTypes
 	}
 
-	m := map[ComparisonType]struct{}{
-		TypeComparisonImage:   {},
-		TypeComparisonEnv:     {},
-		TypeComparisonEnvFrom: {},
+	m := map[ReCreateReason]struct{}{
+		ReasonImageChange:   {},
+		ReasonEnvChange:     {},
+		ReasonEnvFromChange: {},
 	}
 
 	for _, key := range strings.Split(keys, ",") {
-		k := ComparisonType(key)
+		k := ReCreateReason(key)
 		if _, ok := m[k]; ok {
 			comparisonTypes = append(comparisonTypes, k)
 		}
@@ -136,13 +136,13 @@ func (jm *JobMutate) DeleteJob(ctx context.Context, name, namespace string) erro
 }
 
 func (jm *JobMutate) CompareJob(left, right *batchv1.Job) (isSame bool) {
-	comparisonContent := jm.parseAnnotation(left)
+	reasons := jm.parseAnnotation(left)
 
 	lContainers := left.Spec.Template.Spec.Containers
 	rContainers := right.Spec.Template.Spec.Containers
 
-	m := make(map[ComparisonType]struct{})
-	for _, c := range comparisonContent {
+	m := make(map[ReCreateReason]struct{})
+	for _, c := range reasons {
 		m[c] = struct{}{}
 	}
 
@@ -154,19 +154,19 @@ func (jm *JobMutate) CompareJob(left, right *batchv1.Job) (isSame bool) {
 		leftContainer := lContainers[i]
 		rightContainer := rContainers[i]
 
-		if _, ok := m[TypeComparisonImage]; ok {
+		if _, ok := m[ReasonImageChange]; ok {
 			if !jm.CompareContainerImage(leftContainer, rightContainer) {
 				return false
 			}
 		}
 
-		if _, ok := m[TypeComparisonEnv]; ok {
+		if _, ok := m[ReasonEnvChange]; ok {
 			if !jm.CompareContainerEnv(leftContainer, rightContainer) {
 				return false
 			}
 		}
 
-		if _, ok := m[TypeComparisonEnvFrom]; ok {
+		if _, ok := m[ReasonEnvFromChange]; ok {
 			if !jm.CompareContainerEnvFrom(leftContainer, rightContainer) {
 				return false
 			}

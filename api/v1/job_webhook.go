@@ -32,16 +32,16 @@ func NewJobMutate(client client.Client) admission.Handler {
 }
 
 const (
-	AnnotationComparisonKey = "sre-mutator.sre.rootcloud.info/job-comparison-content"
-	AnnotationProcessingKey = "sre-mutator.sre.rootcloud.info/job-processing"
+	AnnotationComparisonKey = "sre-mutator.rootcloud.info/job-recreate-reason"
+	AnnotationProcessingKey = "sre-mutator.rootcloud.info/job-processing"
 )
 
-type ComparisonType string
+type ReCreateReason string
 
 var (
-	TypeComparisonImage   ComparisonType = "image"
-	TypeComparisonEnv     ComparisonType = "env"
-	TypeComparisonEnvFrom ComparisonType = "envFrom"
+	ReasonImageChange   ReCreateReason = "imageChange"
+	ReasonEnvChange     ReCreateReason = "envChange"
+	ReasonEnvFromChange ReCreateReason = "envFromChange"
 )
 
 func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admission.Response {

@@ -38,7 +38,7 @@ spec:
           type: annotation-workload
         - properties:
             project.links.repo: app2
-            sre-mutator.sre.rootcloud.info/job-comparison-content: image
+            sre-mutator.rootcloud.info/job-recreate-reason: image
           type: annotations
         - properties:
             labels:
