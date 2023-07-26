@@ -1,7 +1,7 @@
 
 # Image URL to use all building/pushing image targets
 #IMG ?= controller:latest
-IMG ?= registry.rootcloud.com/devops/job-refactor:0.0.1
+IMG ?= registry.rootcloud.com/devops/job-refactor:0.1.0
 RBAC_PROXY_IMG ?= registry.rootcloud.com/devops/kube-rbac-proxy:v0.14.1
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.27.1

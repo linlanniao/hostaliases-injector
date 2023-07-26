@@ -71,7 +71,7 @@ spec:
         args:
         - --leader-elect
 #        image: controller:latest
-        image: registry.rootcloud.com/devops/job-refactor:0.0.1
+        image: registry.rootcloud.com/devops/job-refactor:0.1.0
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
