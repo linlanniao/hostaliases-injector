@@ -193,3 +193,16 @@ dev: manifests kustomize
 aio: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default > deploy/k8s/aio.yaml
+
+
+HELMIFY ?= $(LOCALBIN)/helmify
+
+.PHONY: helmify
+helmify: $(HELMIFY) ## Download helmify locally if necessary.
+$(HELMIFY): $(LOCALBIN)
+	test -s $(LOCALBIN)/helmify || GOBIN=$(LOCALBIN) go install github.com/arttor/helmify/cmd/helmify@latest
+
+helm: manifests kustomize helmify
+	rm -fr deploy/chart && mkdir -p deploy/chart
+	cd deploy/chart && $(KUSTOMIZE) build ../../config/default | $(HELMIFY) sre-mutator
+	cd deploy/chart && helm package sre-mutator
