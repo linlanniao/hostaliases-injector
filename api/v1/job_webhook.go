@@ -9,7 +9,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-	"time"
 )
 
 //+kubebuilder:webhook:path=/mutate-batch-v1-job,mutating=true,failurePolicy=ignore,sideEffects=None,groups=batch,resources=jobs,verbs=update,versions=v1,name=mjob.kb.io,admissionReviewVersions=v1
@@ -33,7 +32,6 @@ func NewJobMutate(client client.Client) admission.Handler {
 
 const (
 	AnnotationComparisonKey = "sre-mutator.rootcloud.info/job-recreate-if-changed"
-	AnnotationProcessingKey = "sre-mutator.rootcloud.info/job-processing"
 )
 
 type ReCreateReason string
@@ -48,6 +46,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 	newJob := new(batchv1.Job)
 	err := jm.decoder.Decode(req, newJob)
 	if err != nil {
+		logger.Error(err, "decode error")
 		return admission.Errored(http.StatusBadRequest, err)
 	}
 
@@ -60,6 +59,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		)
 		return admission.Allowed("")
 	}
+
 	if _, ok := newJob.Annotations[AnnotationComparisonKey]; !ok {
 		logger.Info(
 			"uncontrolled target",
@@ -81,15 +81,6 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		return admission.Allowed("")
 	}
 
-	if jm.isProcessing(newJob) {
-		delete(newJob.Annotations, AnnotationProcessingKey)
-		resp, err := json.Marshal(newJob)
-		if err != nil {
-			return admission.Errored(http.StatusInternalServerError, err)
-		}
-		return admission.PatchResponseFromRaw(req.Object.Raw, resp)
-	}
-
 	ComparisonTypes := jm.parseAnnotation(newJob)
 
 	if len(ComparisonTypes) == 0 {
@@ -104,7 +95,6 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 
 	isSame := jm.CompareJob(newJob, oldJob)
 	if !isSame {
-
 		if err := jm.DeleteJob(ctx, oldJob.Name, oldJob.Namespace); err != nil {
 			logger.Error(err,
 				"failed to delete job",
@@ -113,12 +103,9 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 				"name", oldJob.Name,
 			)
 		}
-
 		if len(newJob.Annotations) == 0 {
 			newJob.Annotations = make(map[string]string)
 		}
-		now := time.Now()
-		newJob.Annotations[AnnotationProcessingKey] = now.UTC().Format("2006-01-02T15:04:05Z")
 
 		if err := jm.CreateJob(ctx, newJob); err != nil {
 			logger.Error(err,
@@ -140,6 +127,7 @@ func (jm *JobMutate) Handle(ctx context.Context, req admission.Request) admissio
 		if err != nil {
 			return admission.Errored(http.StatusInternalServerError, err)
 		}
+
 		return admission.PatchResponseFromRaw(req.Object.Raw, resp)
 	}
 

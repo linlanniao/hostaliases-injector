@@ -34,7 +34,7 @@ controllerManager:
         - ALL
     image:
       repository: devops/sre-mutator
-      tag: 0.1.0
+      tag: 0.1.1
     resources:
       limits:
         cpu: 500m

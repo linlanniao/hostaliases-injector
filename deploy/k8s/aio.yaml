@@ -264,7 +264,7 @@ spec:
         - --leader-elect
         command:
         - /manager
-        image: registry.rootcloud.com/devops/sre-mutator:0.1.0
+        image: registry.rootcloud.com/devops/sre-mutator:0.1.1
         livenessProbe:
           httpGet:
             path: /healthz

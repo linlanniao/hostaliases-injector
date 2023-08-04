@@ -42,17 +42,6 @@ func (_ *JobMutate) parseAnnotation(job *batchv1.Job) []ReCreateReason {
 	return comparisonTypes
 }
 
-func (_ *JobMutate) isProcessing(job *batchv1.Job) bool {
-	if len(job.Annotations) == 0 {
-		return false
-	}
-	_, ok := job.Annotations[AnnotationProcessingKey]
-	if ok {
-		return true
-	}
-	return false
-}
-
 func (jm *JobMutate) GetJob(ctx context.Context, name, namespace string) (*batchv1.Job, error) {
 	obj := &batchv1.Job{}
 	if namespace == "" {

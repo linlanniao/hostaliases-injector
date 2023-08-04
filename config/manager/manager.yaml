@@ -71,7 +71,7 @@ spec:
         args:
         - --leader-elect
 #        image: controller:latest
-        image: registry.rootcloud.com/devops/sre-mutator:0.1.0
+        image: registry.rootcloud.com/devops/sre-mutator:0.1.1
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
