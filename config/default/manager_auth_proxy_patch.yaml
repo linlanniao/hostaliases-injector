@@ -17,7 +17,8 @@ spec:
               - "ALL"
 #        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.14.1
 #        image: gcr.tencentcloudcr.com/kubebuilder/kube-rbac-proxy:v0.14.1
-        image: registry.rootcloud.com/devops/kube-rbac-proxy:v0.14.1
+#        image: anjia0532/kubebuilder.kube-rbac-proxy:v0.14.1
+        image: bitnami/kube-rbac-proxy:0.16.0
         args:
         - "--secure-listen-address=0.0.0.0:8443"
         - "--upstream=http://127.0.0.1:8080/"

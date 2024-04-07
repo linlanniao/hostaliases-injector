@@ -33,7 +33,7 @@ controllerManager:
         drop:
         - ALL
     image:
-      repository: devops/sre-mutator
+      repository: devops/hostaliases-injector
       tag: 0.1.1
     resources:
       limits:

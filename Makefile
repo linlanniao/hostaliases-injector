@@ -1,10 +1,11 @@
 
 # Image URL to use all building/pushing image targets
 #IMG ?= controller:latest
-IMG ?= registry.rootcloud.com/devops/sre-mutator:0.1.1
-RBAC_PROXY_IMG ?= registry.rootcloud.com/devops/kube-rbac-proxy:v0.14.1
+IMG ?= linlanniao/hostaliases-injector:0.1.0
+#RBAC_PROXY_IMG ?= anjia0532/kubebuilder.kube-rbac-proxy:v0.14.1
+RBAC_PROXY_IMG ?= bitnami/kube-rbac-proxy:0.16.0
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.27.1
+ENVTEST_K8S_VERSION = 1.27.4
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -77,14 +78,16 @@ run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./cmd/main.go
 
 .PHONY: rundev
-rundev: manifests generate fmt vet ## Run a controller from your host.
+#rundev: manifests generate fmt vet ## Run a controller from your host.
+rundev:  ## Run a controller from your host.
 	RUN_DEV="true" go run ./cmd/main.go
 
 # If you wish built the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64 ). However, you must enable docker buildKit for it.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: docker-build
-docker-build: test ## Build docker image with the manager.
+#docker-build: test ## Build docker image with the manager.
+docker-build: ## Build docker image with the manager.
 	$(CONTAINER_TOOL) build -t ${IMG} .
 
 .PHONY: docker-push
@@ -204,5 +207,5 @@ $(HELMIFY): $(LOCALBIN)
 
 helm: manifests kustomize helmify
 	rm -fr deploy/chart && mkdir -p deploy/chart
-	cd deploy/chart && $(KUSTOMIZE) build ../../config/default | $(HELMIFY) sre-mutator
-	cd deploy/chart && helm package sre-mutator
+	cd deploy/chart && $(KUSTOMIZE) build ../../config/default | $(HELMIFY) hostaliases-injector
+	cd deploy/chart && helm package hostaliases-injector

@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	v1 "gitlab.irootech.com/sre/sre-mutator/api/v1"
 	"os"
+
+	v1 "github.com/linlanniao/hostaliases-injector/api/v1"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -25,8 +26,6 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
-	//+kubebuilder:scaffold:scheme
 
 }
 
@@ -53,7 +52,7 @@ func main() {
 		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "1f5bd052.sre.rootcloud.info",
+		LeaderElectionID:       "1f5bd052.ppops.cn",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -69,7 +68,8 @@ func main() {
 
 	runDev := os.Getenv("RUN_DEV")
 	if runDev != "" {
-		ctrlOpts.CertDir = "config/cert/" // 手动指定证书位置用于测试
+		//ctrlOpts.CertDir = "config/cert/" // 手动指定证书位置用于测试
+		ctrlOpts.CertDir = "/Users/janlam/data/development/coder/hostaliases-injector/config/cert/" // 手动指定证书位置用于测试
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrlOpts)
@@ -78,8 +78,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	mgr.GetWebhookServer().Register("/mutate-batch-v1-job", &webhook.Admission{
-		Handler: v1.NewJobMutate(mgr.GetClient()),
+	mgr.GetWebhookServer().Register("/mutate-core-v1-pod", &webhook.Admission{
+		Handler: v1.NewMutate(mgr.GetClient()),
 	})
 
 	//if err = (&batchv1.Job{}).SetupWebhookWithManager(mgr); err != nil {

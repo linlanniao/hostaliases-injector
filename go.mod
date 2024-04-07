@@ -1,4 +1,4 @@
-module gitlab.irootech.com/sre/sre-mutator
+module github.com/linlanniao/hostaliases-injector
 
 go 1.20
 
