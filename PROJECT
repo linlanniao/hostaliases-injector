@@ -5,8 +5,8 @@
 domain: sre.rootcloud.info
 layout:
 - go.kubebuilder.io/v4
-projectName: sre-mutator
-repo: gitlab.irootech.com/sre/sre-mutator
+projectName: hostaliases-injector
+repo: github.com/linlanniao/hostaliases-injector
 resources:
 - group: batch
   kind: Job

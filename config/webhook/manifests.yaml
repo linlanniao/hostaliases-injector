@@ -10,16 +10,16 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /mutate-batch-v1-job
+      path: /mutate-core-v1-pod
   failurePolicy: Ignore
   name: mjob.kb.io
   rules:
   - apiGroups:
-    - batch
+    - ""
     apiVersions:
     - v1
     operations:
-    - UPDATE
+    - CREATE
     resources:
-    - jobs
+    - pods
   sideEffects: None

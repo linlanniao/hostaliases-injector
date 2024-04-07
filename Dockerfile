@@ -1,6 +1,6 @@
 # Build the manager binary
 #FROM golang:1.20 as builder
-FROM dockerhub.tencentcloudcr.com/library/golang:1.20 as builder
+FROM golang:1.22.1 as builder
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -33,7 +33,7 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -ldflags
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 #FROM gcr.io/distroless/static:nonroot
-FROM gcr.tencentcloudcr.com/distroless/static:nonroot
+FROM anjia0532/distroless.static:nonroot
 WORKDIR /
 COPY --from=builder /workspace/manager .
 USER 65532:65532

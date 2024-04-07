@@ -1,8 +1,8 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: {{ include "sre-mutator.fullname" . }}-selfsigned-issuer
+  name: {{ include "hostaliases-injector.fullname" . }}-selfsigned-issuer
   labels:
-  {{- include "sre-mutator.labels" . | nindent 4 }}
+  {{- include "hostaliases-injector.labels" . | nindent 4 }}
 spec:
   selfSigned: {}

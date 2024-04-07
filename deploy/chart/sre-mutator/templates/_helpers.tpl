@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "sre-mutator.name" -}}
+{{- define "hostaliases-injector.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "sre-mutator.fullname" -}}
+{{- define "hostaliases-injector.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "sre-mutator.chart" -}}
+{{- define "hostaliases-injector.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "sre-mutator.labels" -}}
-helm.sh/chart: {{ include "sre-mutator.chart" . }}
-{{ include "sre-mutator.selectorLabels" . }}
+{{- define "hostaliases-injector.labels" -}}
+helm.sh/chart: {{ include "hostaliases-injector.chart" . }}
+{{ include "hostaliases-injector.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "sre-mutator.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "sre-mutator.name" . }}
+{{- define "hostaliases-injector.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "hostaliases-injector.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "sre-mutator.serviceAccountName" -}}
+{{- define "hostaliases-injector.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "sre-mutator.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "hostaliases-injector.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

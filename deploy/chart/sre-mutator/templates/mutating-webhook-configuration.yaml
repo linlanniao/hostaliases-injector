@@ -1,19 +1,19 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: {{ include "sre-mutator.fullname" . }}-mutating-webhook-configuration
+  name: {{ include "hostaliases-injector.fullname" . }}-mutating-webhook-configuration
   annotations:
-    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "sre-mutator.fullname" . }}-serving-cert
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "hostaliases-injector.fullname" . }}-serving-cert
   labels:
-  {{- include "sre-mutator.labels" . | nindent 4 }}
+  {{- include "hostaliases-injector.labels" . | nindent 4 }}
 webhooks:
 - admissionReviewVersions:
   - v1
   clientConfig:
     service:
-      name: '{{ include "sre-mutator.fullname" . }}-webhook-service'
+      name: '{{ include "hostaliases-injector.fullname" . }}-webhook-service'
       namespace: '{{ .Release.Namespace }}'
-      path: /mutate-batch-v1-job
+      path: /mutate-core-v1-pod
   failurePolicy: Ignore
   name: mjob.kb.io
   rules:
